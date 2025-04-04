@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
-from faulthandler import disable
 from os.path import basename, splitext
-from textwrap import fill
 import tkinter as tk
 import datetime
-from typing import final
 
 # from tkinter import ttk
 
@@ -73,7 +70,7 @@ class Application(tk.Tk):
         )
         self.new_part = tk.Button(self.control, text="Nová část", command=self.n_part)
         self.repeat_part = tk.Button(
-            self.control, text="Opakovat část", command=self.r_part
+            self.control, text="Opakovat část", command=self.r_part, state="disabled"
         )
         self.new_exeam = tk.Button(
             self.control, text="Nová zkoužka", command=self.n_exeam
@@ -95,7 +92,8 @@ class Application(tk.Tk):
             self.start_pause.configure(text="Spustit")
             self.repeat_part.configure(state="active")
             self.new_exeam.configure(state="active")
-            self.new_part.configure(state="active")
+            if self.progress != 0:
+                self.new_part.configure(state="active")
 
     def n_part(self, event=None):
         self.parts[self.progress] = 0
@@ -104,16 +102,20 @@ class Application(tk.Tk):
 
         if self.progress == 0:
             self.new_part.configure(state="disabled")
+        self.repeat_part.configure(state="disabled")
 
     def r_part(self, event=None):
         self.parts[self.progress] = 6 * 60 + 40
         self.update_timer()
+        self.repeat_part.configure(state="disabled")
 
     def n_exeam(self, event=None):
         for i in range(3):
             self.parts[i] = 6 * 60 + 40
         self.progress = 2
         self.new_part.configure(state="active")
+        self.start_pause.configure(state="active")
+        self.repeat_part.configure(state="active")
 
     def update_timer(self):
         self.totalTimeLeft = 0
@@ -125,6 +127,14 @@ class Application(tk.Tk):
 
         if self.running:
             self.parts[self.progress] -= 1
+            if self.parts[self.progress] == 0:
+                self.pause_run()
+                self.repeat_part.configure(state="disabled")
+                if self.progress == 0:
+                    self.start_pause.configure(state="disabled")
+                    self.new_part.configure(state="disabled")
+                    self.repeat_part.configure(state="disabled")
+                self.n_part()
             self.update_timer()
 
         self.graph_total.delete("all")
@@ -155,7 +165,7 @@ class Application(tk.Tk):
             text=f"{int(self.totalTimeLeft / 60)}:{self.totalTimeLeft % 60}"
         )
 
-        self.after(1000, self.tick)
+        self.after(10, self.tick)
 
 
 app = Application()
