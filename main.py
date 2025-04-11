@@ -113,6 +113,7 @@ class Application(tk.Tk):
         for i in range(3):
             self.parts[i] = 6 * 60 + 40
         self.progress = 2
+        self.update_timer()
         self.new_part.configure(state="active")
         self.start_pause.configure(state="active")
         self.repeat_part.configure(state="active")
